@@ -5,16 +5,22 @@ import re
 
 # TODO nf-core: Add additional regexes for new tools in process get_software_versions
 regexes = {
-    "nf-core/proportionality": ["v_pipeline.txt", r"(\S+)"],
+    "nf-proportionality": ["v_pipeline.txt", r"(\S+)"],
     "Nextflow": ["v_nextflow.txt", r"(\S+)"],
-    "FastQC": ["v_fastqc.txt", r"FastQC v(\S+)"],
-    "MultiQC": ["v_multiqc.txt", r"multiqc, version (\S+)"],
+    "R": ["v_R.txt", r"R version (\S+) "],
+    "Recount2": ["v_recount.txt", r"(\S+)"],
+    "zCompositions": ["v_zCompositions.txt", r"(\S+)"],
+    "propr": ["v_propr.txt", r"(\S+)"],
+    "edgeR": ["v_edgeR.txt", r"(\S+)"]
 }
 results = OrderedDict()
-results["nf-core/proportionality"] = '<span style="color:#999999;">N/A</span>'
+results["nf-proportionality"] = '<span style="color:#999999;">N/A</span>'
 results["Nextflow"] = '<span style="color:#999999;">N/A</span>'
-results["FastQC"] = '<span style="color:#999999;">N/A</span>'
-results["MultiQC"] = '<span style="color:#999999;">N/A</span>'
+results["R"] = '<span style="color:#999999;">N/A</span>'
+results["Recount2"] = '<span style="color:#999999;">N/A</span>'
+results["zCompositions"] = '<span style="color:#999999;">N/A</span>'
+results["propr"] = '<span style="color:#999999;">N/A</span>'
+results["edgeR"] = '<span style="color:#999999;">N/A</span>'
 
 # Search each file using its regex
 for k, v in regexes.items():
@@ -36,8 +42,8 @@ for k in list(results):
 print(
     """
 id: 'software_versions'
-section_name: 'nf-core/proportionality Software Versions'
-section_href: 'https://github.com/nf-core/proportionality'
+section_name: 'nf-proportionality Software Versions'
+section_href: 'https://github.com/suzannejin/nf-proportionality'
 plot_type: 'html'
 description: 'are collected at run time from the software output.'
 data: |

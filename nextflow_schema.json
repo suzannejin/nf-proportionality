@@ -1,7 +1,7 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema",
-    "$id": "https://raw.githubusercontent.com/nf-core/proportionality/master/nextflow_schema.json",
-    "title": "nf-core/proportionality pipeline parameters",
+    "$id": "https://raw.githubusercontent.com/nf-proportionality/master/nextflow_schema.json",
+    "title": "nf-proportionality pipeline parameters",
     "description": "Run proportionality analysis",
     "type": "object",
     "definitions": {
@@ -10,68 +10,94 @@
             "type": "object",
             "fa_icon": "fas fa-terminal",
             "description": "Define where the pipeline should find input data and save output data.",
-            "required": [
-                "input"
-            ],
             "properties": {
+                "datadir": {
+                    "type": "string",
+                    "description": "Directory where input data are stored",
+                    "help_text": "This directory should contain 3 files: rse_gene.Rdata, tissues.txt, donors.txt",
+                    "fa_icon": "fas fa-folder-open"
+                },
                 "input": {
                     "type": "string",
                     "fa_icon": "fas fa-dna",
-                    "description": "Input FastQ files.",
-                    "help_text": "Use this to specify the location of your input FastQ files. For example:\n\n```bash\n--input 'path/to/data/sample_*_{1,2}.fastq'\n```\n\nPlease note the following requirements:\n\n1. The path must be enclosed in quotes\n2. The path must have at least one `*` wildcard character\n3. When using the pipeline with paired end data, the path must use `{1,2}` notation to specify read pairs.\n\nIf left unspecified, a default pattern is used: `data/*{1,2}.fastq.gz`"
+                    "description": "Input GTEx data",
+                    "help_text": "1. It is a .Rdata file\n2. It contains the object rse_gene = a SummarizedExperiment object extracted from the recount2 R package.",
+                    "default": "${params.datadir}/rse_gene.txt"
                 },
-                "single_end": {
-                    "type": "boolean",
-                    "description": "Specifies that the input is single-end reads.",
-                    "fa_icon": "fas fa-align-center",
-                    "help_text": "By default, the pipeline expects paired-end data. If you have single-end data, you need to specify `--single_end` on the command line when you launch the pipeline. A normal glob pattern, enclosed in quotation marks, can then be used for `--input`. For example:\n\n```bash\n--single_end --input '*.fastq'\n```\n\nIt is not possible to run a mixture of single-end and paired-end files in one run."
+                "tissues": {
+                    "type": "string",
+                    "description": "File: list of tissue names",
+                    "help_text": "1. Subsets of the input data will be obtained by subtracting the samples from each tissue.\n2. Proportionality coefficients will be computed for each subset.",
+                    "default": "${params.datadir}/tissues.txt",
+                    "fa_icon": "fas fa-dna"
+                },
+                "donors": {
+                    "type": "string",
+                    "default": "${params.datadir}/donors.txt",
+                    "description": "File: list of donor IDs",
+                    "help_text": "1. Subsets of the input data will be obtained by subtracting the samples from each donor.\n2. Proportionality coefficients will be computed for each subset.",
+                    "fa_icon": "fas fa-dna"
+                },
+                "methods": {
+                    "type": "string",
+                    "default": "rho_NA_clr",
+                    "description": "Association measure - normalization option - log transformation option.",
+                    "help_text": "Association measure: \n  1.rho (proportionality rho)\n  2.cor (Pearson correlation)\n  3.lrv (log-ratio variance)\n  4.mi (mutual information)\n  5.pcor (partial correlation)\nNormalization: \n  1.NA (without normalization)\n  2.rpkm (Reads Per Kilobase of transcript, per Million mapped reads)\n  3.tpm (Transcript per million)\n  4.tmm (Trimmed Mean of M-values)\nLog transformation:\n  1.NA (without log transformation)\n  2.clr (centered log-ratio transformation)\n  3.log2 (simply do log2(x+1) )",
+                    "fa_icon": "fas fa-tv"
                 },
                 "outdir": {
                     "type": "string",
                     "description": "The output directory where the results will be saved.",
-                    "default": "./results",
-                    "fa_icon": "fas fa-folder-open"
+                    "fa_icon": "fas fa-folder-open",
+                    "default": "${baseDir}/results/${params.methods}"
                 },
-                "email": {
+                "tracedir": {
                     "type": "string",
-                    "description": "Email address for completion summary.",
-                    "fa_icon": "fas fa-envelope",
-                    "help_text": "Set this parameter to your e-mail address to get a summary e-mail with details of the run sent to you when the workflow exits. If set in your user config file (`~/.nextflow/config`) then you don't need to specify this on the command line for every run.",
-                    "pattern": "^([a-zA-Z0-9_\\-\\.]+)@([a-zA-Z0-9_\\-\\.]+)\\.([a-zA-Z]{2,5})$"
-                }
-            }
-        },
-        "reference_genome_options": {
-            "title": "Reference genome options",
-            "type": "object",
-            "fa_icon": "fas fa-dna",
-            "description": "Options for the reference genome indices used to align reads.",
-            "properties": {
-                "genome": {
-                    "type": "string",
-                    "description": "Name of iGenomes reference.",
-                    "fa_icon": "fas fa-book",
-                    "help_text": "If using a reference genome configured in the pipeline using iGenomes, use this parameter to give the ID for the reference. This is then used to build the full paths for all required reference genome files e.g. `--genome GRCh38`.\n\nSee the [nf-core website docs](https://nf-co.re/usage/reference_genomes) for more details."
-                },
-                "fasta": {
-                    "type": "string",
-                    "fa_icon": "fas fa-font",
-                    "description": "Path to FASTA genome file.",
-                    "help_text": "If you have no genome reference available, the pipeline can build one using a FASTA file. This requires additional time and resources, so it's better to use a pre-build index if possible."
-                },
-                "igenomes_base": {
-                    "type": "string",
-                    "description": "Directory / URL base for iGenomes references.",
-                    "default": "s3://ngi-igenomes/igenomes/",
-                    "fa_icon": "fas fa-cloud-download-alt",
+                    "description": "Directory to keep pipeline Nextflow logs and reports.",
+                    "default": "${params.outdir}/pipeline_info",
+                    "fa_icon": "fas fa-cogs",
                     "hidden": true
-                },
-                "igenomes_ignore": {
+                }
+            },
+            "required": [
+                "datadir"
+            ]
+        },
+        "other_parameter_options": {
+            "title": "Other parameter options",
+            "type": "object",
+            "fa_icon": "fas fa-file-import",
+            "description": "Some other parameter used for propr computation, usually with default values",
+            "help_text": "These options are provided to the propr R scripts",
+            "properties": {
+                "test_propr": {
                     "type": "boolean",
-                    "description": "Do not load the iGenomes reference config.",
-                    "fa_icon": "fas fa-ban",
-                    "hidden": true,
-                    "help_text": "Do not load `igenomes.config` when running the pipeline. You may choose this option if you observe clashes between custom parameters and those supplied in `igenomes.config`."
+                    "description": "Run test on 100 genes only",
+                    "fa_icon": "fas fa-adjust"
+                },
+                "cutoff_interval": {
+                    "type": "number",
+                    "default": 0.005,
+                    "description": "Interval for propr FDR computation (updateCutoffs step)",
+                    "fa_icon": "fas fa-adjust"
+                },
+                "interval_min": {
+                    "type": "number",
+                    "default": 0.1,
+                    "description": "Minimum cutoff for propr FDR computation (updateCutoffs step)",
+                    "fa_icon": "fas fa-adjust"
+                },
+                "interval_max": {
+                    "type": "number",
+                    "default": 0.995,
+                    "description": "Maximum cutoff for propr FDR computation (updateCutoffs step)",
+                    "fa_icon": "fas fa-adjust"
+                },
+                "permutation": {
+                    "type": "integer",
+                    "default": 20,
+                    "description": "Permutation number for propr FDR computation (updateCutoffs step)",
+                    "fa_icon": "fas fa-adjust"
                 }
             }
         },
@@ -87,6 +113,13 @@
                     "description": "Display help text.",
                     "hidden": true,
                     "fa_icon": "fas fa-question-circle"
+                },
+                "show_hidden_params": {
+                    "type": "boolean",
+                    "fa_icon": "far fa-eye-slash",
+                    "description": "Show all params when using `--help`",
+                    "hidden": true,
+                    "help_text": "By default, parameters set as _hidden_ in the schema are not shown on the command line when a user runs with `--help`. Specifying this option will tell the pipeline to show all parameters."
                 },
                 "publish_dir_mode": {
                     "type": "string",
@@ -104,36 +137,6 @@
                         "move"
                     ]
                 },
-                "validate_params": {
-                    "type": "boolean",
-                    "description": "Boolean whether to validate parameters against the schema at runtime",
-                    "default": true,
-                    "fa_icon": "fas fa-check-square",
-                    "hidden": true
-                },
-                "email_on_fail": {
-                    "type": "string",
-                    "description": "Email address for completion summary, only when pipeline fails.",
-                    "fa_icon": "fas fa-exclamation-triangle",
-                    "pattern": "^([a-zA-Z0-9_\\-\\.]+)@([a-zA-Z0-9_\\-\\.]+)\\.([a-zA-Z]{2,5})$",
-                    "hidden": true,
-                    "help_text": "This works exactly as with `--email`, except emails are only sent if the workflow is not successful."
-                },
-                "plaintext_email": {
-                    "type": "boolean",
-                    "description": "Send plain-text email instead of HTML.",
-                    "fa_icon": "fas fa-remove-format",
-                    "hidden": true,
-                    "help_text": "Set to receive plain-text e-mails instead of HTML formatted."
-                },
-                "max_multiqc_email_size": {
-                    "type": "string",
-                    "description": "File size limit when attaching MultiQC reports to summary emails.",
-                    "default": "25.MB",
-                    "fa_icon": "fas fa-file-upload",
-                    "hidden": true,
-                    "help_text": "If file generated by pipeline exceeds the threshold, it will not be attached."
-                },
                 "monochrome_logs": {
                     "type": "boolean",
                     "description": "Do not use coloured log outputs.",
@@ -141,25 +144,12 @@
                     "hidden": true,
                     "help_text": "Set to disable colourful command line output and live life in monochrome."
                 },
-                "multiqc_config": {
-                    "type": "string",
-                    "description": "Custom config file to supply to MultiQC.",
-                    "fa_icon": "fas fa-cog",
-                    "hidden": true
-                },
-                "tracedir": {
-                    "type": "string",
-                    "description": "Directory to keep pipeline Nextflow logs and reports.",
-                    "default": "${params.outdir}/pipeline_info",
-                    "fa_icon": "fas fa-cogs",
-                    "hidden": true
-                },
-                "show_hidden_params": {
+                "validate_params": {
                     "type": "boolean",
-                    "fa_icon": "far fa-eye-slash",
-                    "description": "Show all params when using `--help`",
-                    "hidden": true,
-                    "help_text": "By default, parameters set as _hidden_ in the schema are not shown on the command line when a user runs with `--help`. Specifying this option will tell the pipeline to show all parameters."
+                    "description": "Boolean whether to validate parameters against the schema at runtime",
+                    "default": true,
+                    "fa_icon": "fas fa-check-square",
+                    "hidden": true
                 }
             }
         },
@@ -198,56 +188,22 @@
                 }
             }
         },
-        "institutional_config_options": {
-            "title": "Institutional config options",
+        "config_options": {
+            "title": "Config options",
             "type": "object",
             "fa_icon": "fas fa-university",
             "description": "Parameters used to describe centralised config profiles. These should not be edited.",
             "help_text": "The centralised nf-core configuration profiles use a handful of pipeline parameters to describe themselves. This information is then printed to the Nextflow log when you run a pipeline. You should not need to change these values when you run a pipeline.",
             "properties": {
-                "custom_config_version": {
-                    "type": "string",
-                    "description": "Git commit id for Institutional configs.",
-                    "default": "master",
-                    "hidden": true,
-                    "fa_icon": "fas fa-users-cog",
-                    "help_text": "Provide git commit id for custom Institutional configs hosted at `nf-core/configs`. This was implemented for reproducibility purposes. Default: `master`.\n\n```bash\n## Download and use config file with following git commit id\n--custom_config_version d52db660777c4bf36546ddb188ec530c3ada1b96\n```"
-                },
-                "custom_config_base": {
-                    "type": "string",
-                    "description": "Base directory for Institutional configs.",
-                    "default": "https://raw.githubusercontent.com/nf-core/configs/master",
-                    "hidden": true,
-                    "help_text": "If you're running offline, nextflow will not be able to fetch the institutional config files from the internet. If you don't need them, then this is not a problem. If you do need them, you should download the files from the repo and tell nextflow where to find them with the `custom_config_base` option. For example:\n\n```bash\n## Download and unzip the config files\ncd /path/to/my/configs\nwget https://github.com/nf-core/configs/archive/master.zip\nunzip master.zip\n\n## Run the pipeline\ncd /path/to/my/data\nnextflow run /path/to/pipeline/ --custom_config_base /path/to/my/configs/configs-master/\n```\n\n> Note that the nf-core/tools helper package has a `download` command to download all required pipeline files + singularity containers + institutional configs in one go for you, to make this process easier.",
-                    "fa_icon": "fas fa-users-cog"
-                },
-                "hostnames": {
-                    "type": "string",
-                    "description": "Institutional configs hostname.",
-                    "hidden": true,
-                    "fa_icon": "fas fa-users-cog"
-                },
                 "config_profile_name": {
                     "type": "string",
-                    "description": "Institutional config name.",
+                    "description": "Config name.",
                     "hidden": true,
                     "fa_icon": "fas fa-users-cog"
                 },
                 "config_profile_description": {
                     "type": "string",
-                    "description": "Institutional config description.",
-                    "hidden": true,
-                    "fa_icon": "fas fa-users-cog"
-                },
-                "config_profile_contact": {
-                    "type": "string",
-                    "description": "Institutional config contact information.",
-                    "hidden": true,
-                    "fa_icon": "fas fa-users-cog"
-                },
-                "config_profile_url": {
-                    "type": "string",
-                    "description": "Institutional config URL link.",
+                    "description": "Config description.",
                     "hidden": true,
                     "fa_icon": "fas fa-users-cog"
                 }
@@ -259,16 +215,13 @@
             "$ref": "#/definitions/input_output_options"
         },
         {
-            "$ref": "#/definitions/reference_genome_options"
-        },
-        {
             "$ref": "#/definitions/generic_options"
         },
         {
             "$ref": "#/definitions/max_job_request_options"
         },
         {
-            "$ref": "#/definitions/institutional_config_options"
+            "$ref": "#/definitions/config_options"
         }
     ]
 }
