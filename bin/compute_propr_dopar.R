@@ -10,7 +10,7 @@ option_list = list(
   make_option("--data", 
               type="character", 
               default=NULL, 
-              help="Preprocessed expression count matrix: rows=samples, columns=genes in .Rdata format", 
+              help="Processed expression count matrix: rows=samples, columns=genes in .rds format", 
               metavar="character"),
   make_option("--method",
               type="character",
@@ -230,7 +230,7 @@ propr.chunk <- function(counts, metric = c("rho", "phi", "phs", "cor", "vlr"),
 
 # load count matrix
 print_msg("Load count matrix")
-load(file.path(opt$data))  # stored in variable M
+M = readRDS(file.path(opt$data)) 
 
 # output folder
 if (!dir.exists(opt$outdir)) {dir.create(opt$outdir, recursive=TRUE)}

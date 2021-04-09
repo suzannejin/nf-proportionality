@@ -105,10 +105,6 @@ summary['User']             = workflow.userName
 summary['Config Profile']   = workflow.profile
 if (params.config_profile_description) summary['Config Profile Description'] = params.config_profile_description
 summary['Config Files'] = workflow.configFiles.join(', ')
-if (params.email || params.email_on_fail) {
-    summary['E-mail Address']    = params.email
-    summary['E-mail on failure'] = params.email_on_fail
-}
 
 Channel.from(summary.collect{ [it.key, it.value] })
     .map { k,v -> "<dt>$k</dt><dd><samp>${v ?: '<span style=\"color:#999999;\">N/A</a>'}</samp></dd>" }
@@ -159,7 +155,7 @@ process get_software_versions {
 /*
  * STEP 1 - Preprocess count data: select, normalize and log transform
  */
-process preprocess_data {
+process process_data {
 
     label 'process_low'
     publishDir "${params.outdir}/${subname}", mode: params.publish_dir_mode,
@@ -175,13 +171,13 @@ process preprocess_data {
     val(test) from ch_test
 
     output:
-    set file('processed_data.Rdata'), val(method), val(subname) into ch_topropr
+    set file('processed_data.rds'), val(method), val(subname) into ch_topropr
 
     script:
     """
-    preprocess_data.R \
+    process_data.R \
         --data ${input} \
-        --output processed_data.Rdata \
+        --output processed_data.rds \
         ${flag} '${sub}' \
         --norm ${norm} \
         --ivar ${ivar} \

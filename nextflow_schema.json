@@ -11,29 +11,20 @@
             "fa_icon": "fas fa-terminal",
             "description": "Define where the pipeline should find input data and save output data.",
             "properties": {
-                "datadir": {
-                    "type": "string",
-                    "description": "Directory where input data are stored",
-                    "help_text": "This directory should contain 3 files: rse_gene.Rdata, tissues.txt, donors.txt",
-                    "fa_icon": "fas fa-folder-open"
-                },
                 "input": {
                     "type": "string",
                     "fa_icon": "fas fa-dna",
-                    "description": "Input GTEx data",
-                    "help_text": "1. It is a .Rdata file\n2. It contains the object rse_gene = a SummarizedExperiment object extracted from the recount2 R package.",
-                    "default": "${params.datadir}/rse_gene.txt"
+                    "description": "Input expression data (in RDS format)",
+                    "help_text": "1. It is a RDS file\n2. It contains a SummarizedExperiment object extracted from the recount2 R package."
                 },
                 "tissues": {
                     "type": "string",
                     "description": "File: list of tissue names",
                     "help_text": "1. Subsets of the input data will be obtained by subtracting the samples from each tissue.\n2. Proportionality coefficients will be computed for each subset.",
-                    "default": "${params.datadir}/tissues.txt",
                     "fa_icon": "fas fa-dna"
                 },
                 "donors": {
                     "type": "string",
-                    "default": "${params.datadir}/donors.txt",
                     "description": "File: list of donor IDs",
                     "help_text": "1. Subsets of the input data will be obtained by subtracting the samples from each donor.\n2. Proportionality coefficients will be computed for each subset.",
                     "fa_icon": "fas fa-dna"
@@ -41,7 +32,7 @@
                 "methods": {
                     "type": "string",
                     "default": "rho_NA_clr",
-                    "description": "Association measure - normalization option - log transformation option.",
+                    "description": "x_y_z : x= Association measure, y= normalization option, z= log transformation option.",
                     "help_text": "Association measure: \n  1.rho (proportionality rho)\n  2.cor (Pearson correlation)\n  3.lrv (log-ratio variance)\n  4.mi (mutual information)\n  5.pcor (partial correlation)\nNormalization: \n  1.NA (without normalization)\n  2.rpkm (Reads Per Kilobase of transcript, per Million mapped reads)\n  3.tpm (Transcript per million)\n  4.tmm (Trimmed Mean of M-values)\nLog transformation:\n  1.NA (without log transformation)\n  2.clr (centered log-ratio transformation)\n  3.log2 (simply do log2(x+1) )",
                     "fa_icon": "fas fa-tv"
                 },
@@ -60,7 +51,7 @@
                 }
             },
             "required": [
-                "datadir"
+                "input","tissues","donors"
             ]
         },
         "other_parameter_options": {

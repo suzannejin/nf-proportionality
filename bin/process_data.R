@@ -10,12 +10,12 @@ option_list = list(
   make_option("--data", 
               type="character", 
               default=NULL, 
-              help="Input GTEx data file: .Rdata of a SummarizedExperiment object", 
+              help="Input count data file (in .rds format)", 
               metavar="character"),
   make_option("--output",
               type="character",
               default=NULL,
-              help="Processed data (in .Rdata format)",
+              help="Processed data (in .rds format)",
               metavar="character"),
   make_option("--norm", 
               type="character", 
@@ -51,7 +51,7 @@ option_list = list(
               help="Random seed for the sampling of test gene features")   
 ); 
  
-opt_parser = OptionParser(option_list=option_list, usage="Preprocess data for proportionality computation")
+opt_parser = OptionParser(option_list=option_list, usage="Normalize and/or log-transform data for proportionality computation")
 opt = parse_args(opt_parser)
 
 # ========= #
@@ -80,32 +80,23 @@ print_msg <- function(...){
 # ================================ #
 
 print_msg("Reading input files")
-print(opt$data)
-print(file.path(opt$data))
 
 # read gtex data
-load(file.path(opt$data))
+rse_gene = readRDS(file.path(opt$data))
 # get count matrix
 m = assay(rse_gene)
 
-# filter low-expression genes
-# leave out the lower 25% of genes for a reasonable expression
-print_msg("Filtering out low-expression genes")
-av=apply(m,1,mean)
-mygenes_av=rownames(m)[which(av>boxplot(av)$stats[2,1])] 
-rse_gene = rse_gene[mygenes_av,] 
-m = assay(rse_gene)
 
 # run test on randomly selected n gene features
 if (opt$test){
     print_msg("Warning: only ", opt$ntest, " randomly selected genes will be used for testing purposes")
     features = seq(1:nrow(m))
-    set.seed(opt$seed); pos = sample(features)
+    set.seed(opt$seed); pos = sample(features, opt$ntest)
     rse_gene = rse_gene[pos,]
     m = m[pos,]
 }
 
-#
+print_msg("Starting processing count data of dim[", nrow(m), ",", ncol(m), "]")
 
 # normalize the counts if required
 # https://www.reneshbedre.com/blog/expression_units.html
@@ -176,4 +167,4 @@ if (!is.na(subsetname)){
 # write output matrix : this matrix will be used as input for propr
 print_msg("Saving processed expression count data")
 M = t(m)
-save(M, file=opt$output)
+saveRDS(M, file=opt$output)

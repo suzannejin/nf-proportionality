@@ -10,7 +10,7 @@ option_list = list(
   make_option("--data", 
               type="character", 
               default=NULL, 
-              help="Preprocessed expression count matrix: rows=samples, columns=genes in .Rdata format", 
+              help="Preprocessed expression count matrix: rows=samples, columns=genes in .rds format", 
               metavar="character"),
   make_option("--method",
               type="character",
@@ -68,7 +68,7 @@ print_msg <- function(...){
 
 # load count matrix
 print_msg("Load count matrix")
-load(file.path(opt$data))  # stored in variable M
+M = readRDS(file.path(opt$data))  
 
 # calculate association coefficients
 print_msg("Calculate coefficients [", opt$method, "]")
@@ -85,8 +85,8 @@ print_msg("Saving output files")
 if (!dir.exists(opt$outdir)) {dir.create(opt$outdir, recursive=TRUE)}
 
 # write Rdata
-rdata = file.path(opt$outdir, "propr_results.Rdata")
-save(pro, file=rdata)
+rdata = file.path(opt$outdir, "propr_results.rds")
+saveRDS(pro, file=rdata)
 
 # write matrix
 matout = file.path(opt$outdir, "propr_results.mat")
