@@ -13,7 +13,7 @@ outdir = args[2]
 if (!dir.exists(outdir)) {dir.create(outdir, recursive=TRUE)}
 
 # read count data
-load(input)   # rse_gene
+rse_gene = readRDS(input)   # rse_gene
 m = assay(rse_gene)
 
 # filter low-expression genes
@@ -33,7 +33,7 @@ rownames(rse_gene) = mygenes
 # https://bioconductor.org/packages/release/bioc/vignettes/biomaRt/inst/doc/accessing_ensembl.html
 mart <- useMart(biomart="ensembl", 
                 dataset="hsapiens_gene_ensembl", 
-                host="http://nov2020.archive.ensembl.org")   # ensembl version 102
+                host="http://aug2020.archive.ensembl.org")   # ensembl version 101
 
 # filter according to ensemble gene id
 ensembl = getBM(attributes = c( "ensembl_gene_id", "gene_biotype"), 

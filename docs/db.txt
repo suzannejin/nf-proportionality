@@ -1,0 +1,31 @@
+> org.Hs.eg.db
+OrgDb object:
+| DBSCHEMAVERSION: 2.1
+| Db type: OrgDb
+| Supporting package: AnnotationDbi
+| DBSCHEMA: HUMAN_DB
+| ORGANISM: Homo sapiens
+| SPECIES: Human
+| EGSOURCEDATE: 2020-Sep23
+| EGSOURCENAME: Entrez Gene
+| EGSOURCEURL: ftp://ftp.ncbi.nlm.nih.gov/gene/DATA
+| CENTRALID: EG
+| TAXID: 9606
+| GOSOURCENAME: Gene Ontology
+| GOSOURCEURL: http://current.geneontology.org/ontology/go-basic.obo
+| GOSOURCEDATE: 2020-09-10
+| GOEGSOURCEDATE: 2020-Sep23
+| GOEGSOURCENAME: Entrez Gene
+| GOEGSOURCEURL: ftp://ftp.ncbi.nlm.nih.gov/gene/DATA
+| KEGGSOURCENAME: KEGG GENOME
+| KEGGSOURCEURL: ftp://ftp.genome.jp/pub/kegg/genomes
+| KEGGSOURCEDATE: 2011-Mar15
+| GPSOURCENAME: UCSC Genome Bioinformatics (Homo sapiens)
+| GPSOURCEURL: 
+| GPSOURCEDATE: 2020-Aug27
+| ENSOURCEDATE: 2020-Aug18
+| ENSOURCENAME: Ensembl
+| ENSOURCEURL: ftp://ftp.ensembl.org/pub/current_fasta
+| UPSOURCENAME: Uniprot
+| UPSOURCEURL: http://www.UniProt.org/
+| UPSOURCEDATE: Mon Oct  5 00:18:02 2020
