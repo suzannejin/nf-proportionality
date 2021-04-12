@@ -88,9 +88,9 @@ if (!dir.exists(opt$outdir)) {dir.create(opt$outdir, recursive=TRUE)}
 rdata = file.path(opt$outdir, "propr_results.rds")
 saveRDS(pro, file=rdata)
 
-# write matrix
-matout = file.path(opt$outdir, "propr_results.mat")
-write.table(pro@matrix, matout)
+# # write matrix
+# matout = file.path(opt$outdir, "propr_results.mat")
+# write.table(pro@matrix, matout)
 
 # write cutoff
 cutoff = min(pro@fdr[which(pro@fdr[,"FDR"]<0.05), "cutoff"])

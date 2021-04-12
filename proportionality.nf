@@ -36,25 +36,24 @@ if (params.validate_params) {
 ////////////////////////////////////////////////////
 
 // expression data
-ch_input = Channel.fromPath(params.input, checkIfExists:true)
+ch_data = Channel.fromPath(params.input, checkIfExists:true)
 
 // tissue & donor options
 def l_tissues = new File(params.tissues).text.readLines()
 def l_donors = new File(params.donors).text.readLines()
+Channel
+    .fromList(l_tissues)
+    .map { it -> ["--tissue", "'${it}'", it.replaceAll(" ", "_")] }
+    .set { ch_tissues }
+Channel
+    .fromList(l_donors)
+    .map { it -> ["--donor", "'${it}'", it] }
+    .set { ch_donors }
 if (params.test_propr){
-    Channel
-        .fromList(l_tissues)
-        .map { it -> ["--tissue", it, it.replaceAll(" ", "_")] }
-        .set { ch_sub }
+    ch_tissues
+        .mix(ch_donors)
+        .set {ch_sub}
 }else{
-    Channel
-        .fromList(l_tissues)
-        .map { it -> ["--tissue", it, it.replaceAll(" ", "_")] }
-        .set { ch_tissues }
-    Channel
-        .fromList(l_donors)
-        .map { it -> ["--donor", it, it] }
-        .set { ch_donors }
     Channel
         .value( ["", "", "allsample"])
         .mix(ch_tissues)
@@ -79,6 +78,13 @@ if (params.test_propr){
 Channel
     .value( [params.cutoff_interval, params.interval_min, params.interval_max, params.permutation] )
     .set { ch_params }
+
+// merge channels -> input channel
+ch_data
+    .combine(ch_sub)
+    .combine(ch_methods)
+    .combine(ch_test)
+    .set{ch_input}
 
 
 ////////////////////////////////////////////////////
@@ -127,6 +133,7 @@ Channel.from(summary.collect{ [it.key, it.value] })
  * Parse software version numbers
  */
 process get_software_versions {
+
     publishDir "${params.tracedir}", mode: params.publish_dir_mode,
         saveAs: { filename ->
                       if (filename.indexOf('.csv') > 0) filename   // to only save the .csv file
@@ -157,7 +164,10 @@ process get_software_versions {
  */
 process process_data {
 
-    label 'process_low'
+    memory = { 4.GB * task.attempt }
+    time = { 1.h * task.attempt }
+
+    tag "${subname}"
     publishDir "${params.outdir}/${subname}", mode: params.publish_dir_mode,
         saveAs : { filename -> 
                         if ( filename == 'processed_data.Rdata' ) filename
@@ -165,10 +175,14 @@ process process_data {
         }
 
     input:
-    file(input) from ch_input
-    set val(flag), val(sub), val(subname) from ch_sub
-    set val(method), val(norm), val(ivar) from ch_methods
-    val(test) from ch_test
+    set file(input), \
+        val(flag), \
+        val(sub), \
+        val(subname), \
+        val(method), \
+        val(norm), \
+        val(ivar), \
+        val(test) from ch_input
 
     output:
     set file('processed_data.rds'), val(method), val(subname) into ch_topropr
@@ -178,7 +192,7 @@ process process_data {
     process_data.R \
         --data ${input} \
         --output processed_data.rds \
-        ${flag} '${sub}' \
+        ${flag} ${sub} \
         --norm ${norm} \
         --ivar ${ivar} \
         ${test}
@@ -190,7 +204,10 @@ process process_data {
  */
 process propr {
 
-    label 'process_high'
+    memory = { if ( subname == "allsample" ) 64.GB 
+               else 12.GB * task.attempt
+    }
+    tag "${subname}"
     publishDir "${params.outdir}/${subname}", mode: params.publish_dir_mode
 
     input:

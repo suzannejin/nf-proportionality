@@ -20,7 +20,7 @@ option_list = list(
   make_option("--norm", 
               type="character", 
               default="NA", 
-              help="Data normalization. Default=NA. Options=[rpkm,tmm,NA]", 
+              help="Data normalization. Default=NA. Options=[rpkm,tpm,tmm,NA]", 
               metavar="character"),
   make_option("--ivar", 
               type="character", 
@@ -106,6 +106,8 @@ if (opt$norm != "NA"){
 }
 if (opt$norm == "rpkm"){
   m = getRPKM(rse_gene)
+}else if (opt$norm == "tpm"){
+  m = getTPM(rse_gene)
 }else if (opt$norm == "tmm"){
   # Note that normalization in edgeR is model-based, and the original read counts are not themselves transformed. This means that users should not transform the read counts in any way
   # before inputing them to edgeR. For example, users should not enter RPKM or FPKM values to edgeR in place of read counts. Such quantities will prevent edgeR from correctly

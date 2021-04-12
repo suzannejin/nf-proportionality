@@ -59,6 +59,6 @@ for (biotype in biotypes$Var1){
     rse_gene2 = rse_gene[genes,]
 
     # save subset data
-    filename = paste(biotype, ".Rdata", sep="")
-    save(rse_gene2, file=file.path(outdir, filename))
+    filename = paste(biotype, ".rds", sep="")
+    saveRDS(rse_gene2, file=file.path(outdir, filename))
 }
