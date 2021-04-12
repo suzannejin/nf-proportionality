@@ -2,6 +2,8 @@
 # This script reads a count data
 # and counts the percentage of zeros for each tissue & donor
 #
+### I used this script to count the percentage of zeros genes/samples -> [cluster] nf-proportionality/data/counts0/. files
+
 
 library(recount)
 library(matrixStats)

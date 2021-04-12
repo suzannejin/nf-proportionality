@@ -17,19 +17,14 @@ option_list = list(
                 default=NULL, 
                 help="KEGG pathways (.rds file) with ENSEMBL gene names", 
                 metavar="character"),
-    make_option("--output",
+    make_option("--outdir",
                 type="character",
-                default=NULL,
-                help="Output file with aucROC and aucPR values",
-                metavar="character"),
-    make_option("--image",
-                type="character",
-                default=NULL,
-                help="Output file ROC and PR curves",
+                default=getwd(),
+                help="Output directory",
                 metavar="character")
 ); 
  
-opt_parser = OptionParser(option_list=option_list, usage="Normalize and/or log-transform data for proportionality computation")
+opt_parser = OptionParser(option_list=option_list, usage="Coexpression network vs KEGG: ROC and PR curves")
 opt = parse_args(opt_parser)
 
 # ========= #
@@ -41,18 +36,12 @@ library(graphite)
 library(propr)
 library(precrec)
 
-
-# # TODO use this when the docker is updated
-# library(this.path)
-# scriptdir = this.dir()
-# source(file.path(scriptdir, "print_msg.R"))
-print_msg <- function(...){
-
-    vector = c(...)
-    msg = paste(vector, collapse="")
-    msg = paste(Sys.time(), msg, "\n", collapse="\t")
-    cat(msg)
-}
+# load custom functions
+library(this.path)
+scriptdir = this.dir()
+bindir = normalizePath(file.path( this.dir(), ".." ))
+source(file.path(bindir, "utils/print_msg.R"))
+source(file.path(bindir, "kegg/kegg-functions.R"))
 
 # ====================== #
 # LOAD AND ORGANIZE DATA
@@ -77,8 +66,7 @@ print_msg("Organize scores and labels")
 
 # get reference adjacency matrix
 # and convert it to label list
-edges = kegg2edges(kegg, mygenes)
-K = edges2matrix(edges, genes_df$SYMBOL)
+K = kegg2matrix(kegg, mygenes)
 labels = K[lower.tri(K)]
 
 # get prediction scores
@@ -90,21 +78,21 @@ scores = matrix[lower.tri(matrix)]
 
 print_msg("Compute ROC and PR curves for ", length(labels), " items")
 
-
 # create data
-dat = mmdata(l_scores, l_labels, modnames = names(l_scores))
+dat = mmdata(scores, labels)
 print(dat)
 
 # Calculate ROC and Precision-Recall curves for multiple models
 mscurves <- evalmod(dat)
 
 # Plot and save ROC and Precision-Recall curves 
-jpeg(file=opt$output)
-autoplot(mscurves)
+jpeg(file=file.path(opt$outdir, "curve.jpg"))
+ggplot2::autoplot(mscurves)
 dev.off()
 
 # Retrieve a dataframe of AUCs
 aucs.df <- auc(mscurves)
-
-# Use knitr::kable to display the result in a table format
-knitr::kable(aucs.df)
+roc = aucs.df[which(aucs.df$curvetypes=="ROC"),"aucs"]
+pr = aucs.df[which(aucs.df$curvetypes=="PRC"),"aucs"]
+writeLines(as.character(roc), file.path(opt$outdir, "roc.txt"))
+writeLines(as.character(pr), file.path(opt$outdir, "pr.txt"))

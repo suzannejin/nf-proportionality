@@ -48,6 +48,11 @@
                     "default": "${params.outdir}/pipeline_info",
                     "fa_icon": "fas fa-cogs",
                     "hidden": true
+                },
+                "keggfile": {
+                    "type": "string",
+                    "description": "RDS file containing KEGG PathwayList object",
+                    "fa_icon": "fas fa-dna"
                 }
             },
             "required": [

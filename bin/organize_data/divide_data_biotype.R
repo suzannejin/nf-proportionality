@@ -2,9 +2,10 @@ library(recount)
 library(biomaRt)
 
 # 
-# this script divides the original count data 
+# this script divides the original count data (rse_gene data downloaded from recount)
 # into subsets of data according to the biotype (protein_coding, lncRNA, processed_pseudogene, etc)
 # 
+### I used this script to divide the original data, then saved the output data in [cluster] nf-proportionality/data/counts/.
 
 # arguments
 args = commandArgs(trailingOnly=TRUE)

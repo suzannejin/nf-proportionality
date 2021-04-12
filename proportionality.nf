@@ -189,7 +189,7 @@ process process_data {
 
     script:
     """
-    process_data.R \
+    Rscript ${baseDir}/bin/propr/process_data.R \
         --data ${input} \
         --output processed_data.rds \
         ${flag} ${sub} \
@@ -216,10 +216,11 @@ process propr {
 
     output:
     file 'propr_results*'
+    set val(subname), file('propr_results.rds') into ch_proprout
 
     script:
     """
-    compute_propr.R \
+    Rscript ${baseDir}/bin/propr/compute_propr.R \
         --data ${input} \
         --method ${method} \
         --cutoff_interval ${fdrparams[0]} \
@@ -228,6 +229,39 @@ process propr {
         --permutation ${fdrparams[3]} 
     """
 }
+
+
+// create input for kegg process
+ch_kegg = Channel.fromPath(params.keggfile)
+ch_proprout
+    .combine(ch_kegg)
+    .set{ch_tokegg}
+
+/*
+ * STEP 3 - Compare coexpression matrix with KEGG pathways
+ */
+process kegg {
+
+    memory = 8.GB
+    tag "${subname}"
+    publishDir "${params.outdir}/${subname}/kegg", mode: params.publish_dir_mode
+
+    input:
+    set val(subname), file(propr), file(kegg) from ch_tokegg
+
+    output:
+    set file('curve.jpg'), \
+        file('pr.txt'), \
+        file('roc.txt')
+
+    script:
+    """
+    Rscript ${baseDir}/bin/kegg/kegg.R \
+        --pro ${propr} \
+        --kegg ${kegg}
+    """
+}
+
 
 
 workflow.onError {
