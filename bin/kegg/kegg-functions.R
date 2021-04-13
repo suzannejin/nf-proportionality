@@ -94,6 +94,19 @@ nnode_per_pathway <- function(kegg, genes=NULL){
     return(df)
 }
 
+# get the kegg pathways that have a reasonable number of target genes
+keggWithMygenes <- function(kegg, mygenes, min=2, max=NA){
+
+    p = nnode_per_pathway(kegg, mygenes)
+    p = p[p$n_nodes >= min,]
+    if (!is.na(max)){
+        p = p[p$n_nodes < max,]
+    }
+    kegg = kegg[p$pathway]
+
+    return(kegg)
+}
+
 
 # ===================== #
 # KEGG ADJACENCY MATRIX #

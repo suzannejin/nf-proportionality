@@ -30,16 +30,6 @@ bindir = normalizePath(file.path( this.dir(), ".." ))
 source(file.path(bindir, "utils/print_msg.R"))
 source(file.path(bindir, "kegg/kegg-functions.R"))
 
-# get the kegg pathways that have at least 2 genes from my set
-keggWithMygenes <- function(kegg, mygenes){
-
-    p = nnode_per_pathway(kegg, mygenes)
-    p = p[p$n_nodes >= 2,]
-    kegg = kegg[p$pathway]
-
-    return(kegg)
-}
-
 
 # ============ #
 # PROCESS DATA #
@@ -62,7 +52,7 @@ mygenes = rownames(matrix)
 mygenes = kegg2nodes(kegg, mygenes)
 
 # keep the pathways with >= 2 mygenes
-kegg = keggWithMygenes(kegg, mygenes)
+kegg = keggWithMygenes(kegg, mygenes, min=2)
 
 # store KEGG data
 print_msg("Save output with ", as.character(length(kegg)), " KEGG pathways")

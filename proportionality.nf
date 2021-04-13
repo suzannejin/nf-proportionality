@@ -216,7 +216,7 @@ process propr {
 
     output:
     file 'propr_results*'
-    set val(subname), file('propr_results.rds') into ch_proprout
+    set val(subname), file('propr_results.rds') into ch_proprout1, ch_proprout2
 
     script:
     """
@@ -231,25 +231,39 @@ process propr {
 }
 
 
-// create input for kegg process
-ch_proprout
-    .combine( Channel.fromPath(params.keggfile) )
-    .combine( Channel.fromList(['-clique', '']))
-    .set{ch_tokegg}
-
 /*
- * STEP 3 - Compare coexpression matrix with KEGG pathways
+ * STEP 3 - Compare coexpression matrix vs reference graph
  */
+
+// create input for kegg process
+ch_proprout1
+    .combine( Channel.fromPath(params.keggfile) )
+    .combine( Channel.fromList(['clique', 'NA']) )  // kegg pathways as clique
+    .combine( Channel.fromList([10, 2]) )           // min kegg pathway size
+    .combine( Channel.fromList([1000, 100, 'NA'])  )     // max kegg pathway size
+    .set{ch_tokegg}
+// create input for go process
+ch_proprout2
+    .combine( Channel.fromList([10, 2]) )           // min kegg go size
+    .combine( Channel.fromList([1000, 'NA'])  )     // max kegg go size
+    .set{ch_togo}
+
+// run kegg analysis
 process kegg {
 
     memory = { 6.GB * task.attempt }
     time = { 30.min * task.attempt }
 
     tag "${subname}"
-    publishDir "${params.outdir}/${subname}/kegg${clique}", mode: params.publish_dir_mode
+    publishDir "${params.outdir}/${subname}/kegg/kegg-${clique}-minK${minK}-maxK${maxK}", mode: params.publish_dir_mode
 
     input:
-    set val(subname), file(propr), file(kegg), val(clique) from ch_tokegg
+    set val(subname), \
+        file(propr), \
+        file(kegg), \
+        val(clique), \
+        val(minK), \
+        val(maxK) from ch_tokegg
 
     output:
     set file('curve.jpg'), \
@@ -257,15 +271,49 @@ process kegg {
         file('roc.txt')
 
     script:
-    def clique_var = clique == '-clique' ? '--clique' : ''
+    def clique_var = clique == 'clique' ? '--clique' : ''
+    def maxK_var = maxK == 'NA' ? '' : "--maxK ${maxK}"
+
     """
     Rscript ${baseDir}/bin/kegg/kegg.R \
         --pro ${propr} \
         --kegg ${kegg} \
-        ${clique_var}
+        ${clique_var} \
+        --minK ${minK} \
+        ${maxK_var}
     """
 }
 
+// run GO analysis
+process go {
+
+    memory = { 6.GB * task.attempt }
+    time = { 30.min * task.attempt }
+
+    tag "${subname}"
+    publishDir "${params.outdir}/${subname}/go/go-minK${minK}-maxK${maxK}", mode: params.publish_dir_mode
+
+    input:
+    set val(subname), \
+        file(propr), \
+        val(minK), \
+        val(maxK) from ch_togo
+
+    output:
+    set file('curve.jpg'), \
+        file('pr.txt'), \
+        file('roc.txt')
+
+    script:
+    def maxK_var = maxK == 'NA' ? '' : "--maxK ${maxK}"
+
+    """
+    Rscript ${baseDir}/bin/go/go.R \
+        --pro ${propr} \
+        --minK ${minK} \
+        ${maxK_var}
+    """
+}
 
 
 workflow.onError {

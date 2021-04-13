@@ -12,40 +12,28 @@ option_list = list(
                 default=NULL, 
                 help="Input propr object (.rds file)", 
                 metavar="character"),
-    make_option("--kegg", 
-                type="character", 
-                default=NULL, 
-                help="KEGG pathways (.rds file) with ENSEMBL gene names", 
-                metavar="character"),
     make_option("--outdir",
                 type="character",
                 default=getwd(),
                 help="Output directory",
                 metavar="character"),
-    make_option("--clique",
-              action="store_true",
-              default=FALSE,
-              help="KEGG graph as clique"),
     make_option("--minK",
               type="integer",
               default=2,
-              help="Minimun pathway size (min number of target genes in the pathway)"),
+              help="Minimun GO term size (min number of target genes annotated with the same GO)"),
     make_option("--maxK",
               type="integer",
               default=NA,
-              help="Maximum pathway size (max number of target genes in the pathway)")
+              help="Maximum GO term size (max number of target genes annotated with the same GO)")
 ); 
  
-opt_parser = OptionParser(option_list=option_list, usage="Coexpression network vs KEGG: ROC and PR curves")
+opt_parser = OptionParser(option_list=option_list, usage="Coexpression network vs GO: ROC and PR curves")
 opt = parse_args(opt_parser)
 
 # ========= #
 # LIBRARIES #
 # ========= #
 
-library(biomaRt)
-library(graphite)
-library(propr)
 library(precrec)
 
 # load custom functions
@@ -53,42 +41,37 @@ library(this.path)
 scriptdir = this.dir()
 bindir = normalizePath(file.path( this.dir(), ".." ))
 source(file.path(bindir, "utils/print_msg.R"))
-source(file.path(bindir, "kegg/kegg-functions.R"))
+source(file.path(bindir, "go/go-functions.R"))
 
 # ====================== #
 # LOAD AND ORGANIZE DATA
 # ====================== #
 
-# read input association matrix, and genes
+# read input propr object 
 print_msg("Read and process propr object")
 pro = readRDS(opt$pro)
 matrix = pro@matrix
 mygenes = rownames(matrix)
 rm(pro)
 
-# load kegg
-print_msg("Load KEGG pathways")
-kegg = readRDS(opt$kegg)
-# get pathways containing a reasonable number of target genes
-kegg = keggWithMygenes(kegg, mygenes, min=opt$minK, max=opt$maxK)
-
-# # match genes in kegg and our data
-# mygenes = kegg2nodes(kegg, mygenes)
-# matrix = matrix[mygenes, mygenes]
+# reference GO graph
+print_msg("Extract reference GO graph")
+K = getK2(mygenes, 
+            keytype="ENSEMBL", 
+            ont=c("BP"),
+            evi=c("EXP", "IDA", "IPI", "IMP", "IGI", "TAS", "IC"),
+            minK=opt$minK,
+            maxK=opt$maxK)
+K = K2adjmatrix(K,mygenes)
 
 # ============ #
 # ROC ANALYSIS #
 # ============ #
 
+# scores and labels
 print_msg("Organize scores and labels")
-
-# get reference adjacency matrix
-# and convert it to label list
-K = kegg2matrix(kegg, mygenes, clique=opt$clique)
-labels = K[lower.tri(K)]
-
-# get prediction scores
 scores = matrix[lower.tri(matrix)]
+labels = K[lower.tri(K)]
 
 print_msg("Compute ROC and PR curves for ", length(labels), " items")
 
