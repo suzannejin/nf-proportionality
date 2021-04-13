@@ -216,7 +216,7 @@ process propr {
 
     output:
     file 'propr_results*'
-    set val(subname), file('propr_results.rds') into ch_proprout1, ch_proprout2
+    set val(subname), file('propr_results.rds') into ch_proprout1, ch_proprout2, ch_proprout3
 
     script:
     """
@@ -247,6 +247,11 @@ ch_proprout2
     .combine( Channel.fromList([10, 2]) )           // min kegg go size
     .combine( Channel.fromList([1000, 'NA'])  )     // max kegg go size
     .set{ch_togo}
+// create input for hippie process
+ch_proprout3
+    .combine( Channel.fromPath(params.hippiefile) )
+    .combine( Channel.fromList([0,1,2,3]) )           // HIPPIE score confidence level
+    .set{ ch_tohippie }
 
 // run kegg analysis
 process kegg {
@@ -314,6 +319,33 @@ process go {
         ${maxK_var}
     """
 }
+
+process hippie {
+
+    tag "${subname}"
+    publishDir "${maindir}/hippie/hippie-confidence${confidence}", mode: params.publish_dir_mode
+
+    input:
+    set val(subname), \
+        val(maindir), \
+        file(propr), \
+        file(hippie), \
+        val(confidence) from ch_tohippie
+
+    output:
+    set file('curve.jpg'), \
+        file('pr.txt'), \
+        file('roc.txt')
+
+    script:
+    """
+    Rscript ${baseDir}/bin/hippie/hippie.R \
+        --pro ${propr} \
+        --hippie ${hippie} \
+        --confidence ${confidence}
+    """
+}
+
 
 
 workflow.onError {

@@ -41,6 +41,7 @@ library(this.path)
 scriptdir = this.dir()
 bindir = normalizePath(file.path( this.dir(), ".." ))
 source(file.path(bindir, "utils/print_msg.R"))
+source(file.path(bindir, "utils/compute_roc.R"))
 source(file.path(bindir, "go/go-functions.R"))
 
 # ====================== #
@@ -74,22 +75,4 @@ scores = matrix[lower.tri(matrix)]
 labels = K[lower.tri(K)]
 
 print_msg("Compute ROC and PR curves for ", length(labels), " items")
-
-# create data
-dat = mmdata(scores, labels)
-print(dat)
-
-# Calculate ROC and Precision-Recall curves for multiple models
-mscurves <- evalmod(dat)
-
-# Plot and save ROC and Precision-Recall curves 
-jpeg(file=file.path(opt$outdir, "curve.jpg"))
-ggplot2::autoplot(mscurves)
-dev.off()
-
-# Retrieve a dataframe of AUCs
-aucs.df <- auc(mscurves)
-roc = aucs.df[which(aucs.df$curvetypes=="ROC"),"aucs"]
-pr = aucs.df[which(aucs.df$curvetypes=="PRC"),"aucs"]
-writeLines(as.character(roc), file.path(opt$outdir, "roc.txt"))
-writeLines(as.character(pr), file.path(opt$outdir, "pr.txt"))
+compute_roc(scores, labels, opt$outdir)

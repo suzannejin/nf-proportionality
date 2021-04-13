@@ -155,7 +155,7 @@ kegg2matrix <- function(kegg, genes, clique=TRUE) {
 }
 
 # convert KEGG edges data frame into adjacency matrix
-edges2matrix <- function(edges, mygenes){
+edges2matrix <- function(edges, mygenes, col1="src", col2="dest"){
     
     # initialize matrix
     ngenes = length(mygenes)
@@ -165,8 +165,8 @@ edges2matrix <- function(edges, mygenes){
     
     # update value for edge
     for (e in 1:nrow(edges)){
-        i = edges[e,"src"]
-        j = edges[e, "dest"]
+        i = edges[e, col1]
+        j = edges[e, col2]
         mat[i,j] = 1
         mat[j,i] = 1
     }
