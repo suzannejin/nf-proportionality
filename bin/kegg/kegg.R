@@ -21,7 +21,11 @@ option_list = list(
                 type="character",
                 default=getwd(),
                 help="Output directory",
-                metavar="character")
+                metavar="character"),
+    make_option("--clique",
+              action="store_true",
+              default=FALSE,
+              help="KEGG graph as clique")
 ); 
  
 opt_parser = OptionParser(option_list=option_list, usage="Coexpression network vs KEGG: ROC and PR curves")
@@ -62,19 +66,19 @@ mygenes = rownames(matrix)
 mygenes = kegg2nodes(kegg, mygenes)
 matrix = matrix[mygenes, mygenes]
 
+# ============ #
+# ROC ANALYSIS #
+# ============ #
+
 print_msg("Organize scores and labels")
 
 # get reference adjacency matrix
 # and convert it to label list
-K = kegg2matrix(kegg, mygenes)
+K = kegg2matrix(kegg, mygenes, clique=opt$clique)
 labels = K[lower.tri(K)]
 
 # get prediction scores
 scores = matrix[lower.tri(matrix)]
-
-# ============ #
-# ROC ANALYSIS #
-# ============ #
 
 print_msg("Compute ROC and PR curves for ", length(labels), " items")
 

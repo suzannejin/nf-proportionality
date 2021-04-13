@@ -232,9 +232,9 @@ process propr {
 
 
 // create input for kegg process
-ch_kegg = Channel.fromPath(params.keggfile)
 ch_proprout
-    .combine(ch_kegg)
+    .combine( Channel.fromPath(params.keggfile) )
+    .combine( Channel.fromList(['-clique', '']))
     .set{ch_tokegg}
 
 /*
@@ -246,10 +246,10 @@ process kegg {
     time = { 30.min * task.attempt }
 
     tag "${subname}"
-    publishDir "${params.outdir}/${subname}/kegg", mode: params.publish_dir_mode
+    publishDir "${params.outdir}/${subname}/kegg${clique}", mode: params.publish_dir_mode
 
     input:
-    set val(subname), file(propr), file(kegg) from ch_tokegg
+    set val(subname), file(propr), file(kegg), val(clique) from ch_tokegg
 
     output:
     set file('curve.jpg'), \
@@ -257,10 +257,12 @@ process kegg {
         file('roc.txt')
 
     script:
+    def clique_var = clique == '-clique' ? '--clique' : ''
     """
     Rscript ${baseDir}/bin/kegg/kegg.R \
         --pro ${propr} \
-        --kegg ${kegg}
+        --kegg ${kegg} \
+        ${clique_var}
     """
 }
 
