@@ -242,7 +242,9 @@ ch_proprout
  */
 process kegg {
 
-    memory = 8.GB
+    memory = { 6.GB * task.attempt }
+    time = { 30.min * task.attempt }
+
     tag "${subname}"
     publishDir "${params.outdir}/${subname}/kegg", mode: params.publish_dir_mode
 
